@@ -1,73 +1,85 @@
 <?php
+/*
+   Plugin Name: Form to Database
+   Plugin URI: http://wordpress.org/extend/plugins/form-to-database/
+   Version: 0.1
+   Author: Matt Crandell
+   Description: A WordPress plgugin to add form data to the database.
+   Text Domain: form-to-database
+   License: GPLv3
+  */
+
+/*
+    "WordPress Plugin Template" Copyright (C) 2017 Michael Simpson  (email : michael.d.simpson@gmail.com)
+
+    This following part of this file is part of WordPress Plugin Template for WordPress.
+
+    WordPress Plugin Template is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    WordPress Plugin Template is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Contact Form to Database Extension.
+    If not, see http://www.gnu.org/licenses/gpl-3.0.html
+*/
+
+$FormToDatabase_minimalRequiredPhpVersion = '5.0';
 
 /**
- * Form to Database
- *
- * A WordPress plgugin to add form data to the database.
- * Also viewable from the admin area.
- *
- * @link              http://www.crandelldesign.com
- * @since             1.0.0
- * @package           Form_to_Database
- *
- * @wordpress-plugin
- * Plugin Name:       Form to Database
- * Plugin URI:        https://github.com/crandelldesign/form-to-database
- * Description:       A WordPress plgugin to add form data to the database. Also viewable from the admin area.
- * Version:           1.0.0
- * Author:            Crandell Design
- * Author URI:        http://www.crandelldesign.com/
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       form-to-database
- * Domain Path:       /languages
+ * Check the PHP version and give a useful error message if the user's version is less than the required version
+ * @return boolean true if version check passed. If false, triggers an error which WP will handle, by displaying
+ * an error message on the Admin page
  */
-
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+function FormToDatabase_noticePhpVersionWrong() {
+    global $FormToDatabase_minimalRequiredPhpVersion;
+    echo '<div class="updated fade">' .
+      __('Error: plugin "Form to Database" requires a newer version of PHP to be running.',  'form-to-database').
+            '<br/>' . __('Minimal version of PHP required: ', 'form-to-database') . '<strong>' . $FormToDatabase_minimalRequiredPhpVersion . '</strong>' .
+            '<br/>' . __('Your server\'s PHP version: ', 'form-to-database') . '<strong>' . phpversion() . '</strong>' .
+         '</div>';
 }
 
-/**
- * The code that runs during plugin activation.
- * This action is documented in inc/class-form-to-database-activator.php
- */
-function activate_form_to_database() {
-	require_once plugin_dir_path( __FILE__ ) . 'inc/class-form-to-database-activator.php';
-	Form_to_Database_Activator::activate();
+
+function FormToDatabase_PhpVersionCheck() {
+    global $FormToDatabase_minimalRequiredPhpVersion;
+    if (version_compare(phpversion(), $FormToDatabase_minimalRequiredPhpVersion) < 0) {
+        add_action('admin_notices', 'FormToDatabase_noticePhpVersionWrong');
+        return false;
+    }
+    return true;
 }
 
+
 /**
- * The code that runs during plugin deactivation.
- * This action is documented in inc/class-form-to-database-deactivator.php
+ * Initialize internationalization (i18n) for this plugin.
+ * References:
+ *      http://codex.wordpress.org/I18n_for_WordPress_Developers
+ *      http://www.wdmac.com/how-to-create-a-po-language-translation#more-631
+ * @return void
  */
-function deactivate_form_to_database() {
-	require_once plugin_dir_path( __FILE__ ) . 'inc/class-form-to-database-deactivator.php';
-	Form_to_Database_Deactivator::deactivate();
+function FormToDatabase_i18n_init() {
+    $pluginDir = dirname(plugin_basename(__FILE__));
+    load_plugin_textdomain('form-to-database', false, $pluginDir . '/languages/');
 }
 
-register_activation_hook( __FILE__, 'activate_form_to_database' );
-register_deactivation_hook( __FILE__, 'deactivate_form_to_database' );
 
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'inc/class-form-to-database.php';
+//////////////////////////////////
+// Run initialization
+/////////////////////////////////
 
-/**
- * Begins execution of the plugin.
- *
- * Since everything within the plugin is registered via hooks,
- * then kicking off the plugin from this point in the file does
- * not affect the page life cycle.
- *
- * @since    1.0.0
- */
-function run_form_to_database() {
+// Initialize i18n
+add_action('plugins_loadedi','FormToDatabase_i18n_init');
 
-	$plugin = new Form_to_Database();
-	$plugin->run();
-
+// Run the version check.
+// If it is successful, continue with initialization for this plugin
+if (FormToDatabase_PhpVersionCheck()) {
+    // Only load and run the init function if we know PHP version can parse it
+    include_once('form-to-database_init.php');
+    FormToDatabase_init(__FILE__);
 }
-run_form_to_database();
