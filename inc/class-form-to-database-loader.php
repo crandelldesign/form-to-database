@@ -48,7 +48,7 @@ class Form_to_Database_Loader {
 	 */
 	public function __construct() {
 
-		$this->actions = array();
+		$this->actions = array('form_to_database_test');
 		$this->filters = array();
 
 	}
@@ -125,5 +125,11 @@ class Form_to_Database_Loader {
 		}
 
 	}
+
+	// Test Action
+	function form_to_database_test() {
+		return 'Test';
+	}
+
 
 }

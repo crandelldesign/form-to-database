@@ -13,7 +13,7 @@
  * @wordpress-plugin
  * Plugin Name:       Form to Database
  * Plugin URI:        https://github.com/crandelldesign/form-to-database
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       A WordPress plgugin to add form data to the database. Also viewable from the admin area.
  * Version:           1.0.0
  * Author:            Crandell Design
  * Author URI:        http://www.crandelldesign.com/

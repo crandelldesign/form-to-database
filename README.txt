@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Form to Database ===
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: http://www.crandelldesign.com/
 Tags: comments, spam
