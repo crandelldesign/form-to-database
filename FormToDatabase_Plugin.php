@@ -57,6 +57,31 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         //        $tableName = $this->prefixTableName('mytable');
         //        $wpdb->query("CREATE TABLE IF NOT EXISTS `$tableName` (
         //            `id` INTEGER NOT NULL");
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'form_to_database';
+
+        try
+        {
+            $charset_collate = $wpdb->get_charset_collate();
+
+            $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+                created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                email varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+                name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+                data text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                form_name varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+                PRIMARY KEY (id)
+            ) $charset_collate;";
+
+            require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+            dbDelta( $sql );
+        }
+        catch(Exception $e)
+        {
+            echo $e->getMessage();
+        }
     }
 
     /**
@@ -77,6 +102,7 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
      * @return void
      */
     public function upgrade() {
+        $this->installDatabaseTables();
     }
 
     public function addActionsAndFilters() {
@@ -95,6 +121,31 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
 
         // Add Actions & Filters
         // http://plugin.michael-simpson.com/?page_id=37
+        function ftd_test_action()
+        {
+            echo 'test';
+        }
+        add_action('ftd_test', 'ftd_test_action');
+
+        function ftd_insert_data_action($form_name, $form_data)
+        {
+            global $wpdb;
+            try
+            {
+                $table_name = $wpdb->prefix . 'form_to_database';
+                $wpdb->insert( $table_name, array(
+                    'name' => (array_key_exists('contact_name',$form_data))?$form_data['contact_name']:'',
+                    'email' => (array_key_exists('email',$form_data))?$form_data['email']:'',
+                    'form_name' => $form_name,
+                    'data' => json_encode($form_data)
+                ) );
+            }
+            catch(Exception $e)
+            {
+                echo $e->getMessage();
+            }
+        }
+        add_action('ftd_insert_data', 'ftd_insert_data_action', 10, 2);
 
 
         // Adding scripts & styles to all pages

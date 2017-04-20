@@ -60,25 +60,6 @@ class FormToDatabase_LifeCycle extends FormToDatabase_InstallIndicator {
      * @return void
      */
     public function activate() {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'form_to_database';
-
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE $table_name (
-            created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            email varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
-            name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
-            data text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-            form_name varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-            PRIMARY KEY (id)
-        ) $charset_collate;";
-
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        dbDelta( $sql );
     }
 
     /**
@@ -107,6 +88,7 @@ class FormToDatabase_LifeCycle extends FormToDatabase_InstallIndicator {
      * @return void
      */
     protected function installDatabaseTables() {
+
     }
 
     /**
