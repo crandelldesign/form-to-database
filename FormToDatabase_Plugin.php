@@ -93,6 +93,22 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         //        global $wpdb;
         //        $tableName = $this->prefixTableName('mytable');
         //        $wpdb->query("DROP TABLE IF EXISTS `$tableName`");
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'form_to_database';
+
+        try
+        {
+            $charset_collate = $wpdb->get_charset_collate();
+
+            $sql = "DROP TABLE IF EXISTS  $table_name";
+
+            require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+            dbDelta( $sql );
+        }
+        catch(Exception $e)
+        {
+            echo $e->getMessage();
+        }
     }
 
 
