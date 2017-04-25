@@ -72,6 +72,8 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                 name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
                 data text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
                 form_name varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+                form_slug varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+                form_columns text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
                 PRIMARY KEY (id)
             ) $charset_collate;";
 
@@ -125,7 +127,12 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
 
         // Add options administration page
         // http://plugin.michael-simpson.com/?page_id=47
-        add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
+        //add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
+        /*function ftd_admin_page_menu(){
+            add_menu_page('Form to Database', 'Form to Database', 'manage_options', __FILE__, 'ftd_admin_page_action', plugins_url('/img/icon.png',__DIR__));
+            //add_menu_page('My Plugin', 'My Plugin', 'manage_options', __FILE__, 'clivern_render_plugin_page', plugins_url('/img/icon.png',__DIR__));
+        }*/
+        add_action('admin_menu', array($this, 'ftd_admin_menu'));
 
         // Example adding a script & style just for the options administration page
         // http://plugin.michael-simpson.com/?page_id=47
@@ -143,8 +150,11 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         }
         add_action('ftd_test', 'ftd_test_action');
 
-        function ftd_insert_data_action($form_name, $form_data)
+        function ftd_insert_data_action($form_name, $form_data, $form_columns = NULL)
         {
+            // Remove Recaptcha Results
+            unset($form_data['g-recaptcha-response']);
+            unset($form_columns['g-recaptcha-response']);
             global $wpdb;
             try
             {
@@ -153,7 +163,9 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                     'name' => (array_key_exists('contact_name',$form_data))?$form_data['contact_name']:'',
                     'email' => (array_key_exists('email',$form_data))?$form_data['email']:'',
                     'form_name' => $form_name,
-                    'data' => json_encode($form_data)
+                    'form_slug' => sanitize_title_with_dashes($form_name, null, 'save'),
+                    'data' => json_encode($form_data),
+                    'form_columns' => ($form_columns)?json_encode($form_columns):''
                 ) );
             }
             catch(Exception $e)
@@ -161,7 +173,7 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                 echo $e->getMessage();
             }
         }
-        add_action('ftd_insert_data', 'ftd_insert_data_action', 10, 2);
+        add_action('ftd_insert_data', 'ftd_insert_data_action', 10, 3);
 
 
         // Adding scripts & styles to all pages
@@ -178,6 +190,46 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         // Register AJAX hooks
         // http://plugin.michael-simpson.com/?page_id=41
 
+    }
+
+    public function ftd_admin_menu() {
+       $this->my_plugin_screen_name = add_menu_page(
+            'Form to Database',
+            'Form to Database',
+            'manage_options',
+            'form-to-database',
+            array($this, 'ftd_render_admin_page'),
+            plugins_url('/img/icon.png',__DIR__)
+            );
+      }
+
+    public function ftd_render_admin_page() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'form_to_database';
+        $form_names = $wpdb->get_results(
+            "SELECT DISTINCT form_name, form_slug FROM $table_name"
+        );
+    ?>
+        <div class="wrap">
+            <h2>Form to Database</h2>
+            <ul>
+                <li><?php
+                    foreach ($form_names as $form_name) {
+                        echo '<li><a href="'.admin_url('admin.php?page=form-to-database&form='.$form_name->form_slug).'">'.$form_name->form_name.'</a></li>';
+                    }
+                ?></li>
+            </ul>
+            <?php if(isset($_GET['form']) && !empty($_GET['form'])) { ?>
+                <?php
+                    $form_slug = $_GET['form'];
+                    $results = $wpdb->get_results(
+                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s",$form_slug)
+                    );
+                    print_r($results);
+                ?>
+            <?php } ?>
+        </div>
+    <?php
     }
 
 
