@@ -211,7 +211,7 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         );
     ?>
         <div class="wrap">
-            <h2>Form to Database</h2>
+            <h1>Form to Database</h1>
             <ul>
                 <li><?php
                     foreach ($form_names as $form_name) {
@@ -229,35 +229,41 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                         $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s AND form_columns IS NOT NULL AND TRIM(form_columns) <> '' ORDER BY created_at DESC",$form_slug)
                     );
 
-                    $columns = json_decode($columns_results->form_columns);
+                    $columns = json_decode($columns_results->form_columns, true);
                     $column_count = count($columns);
                     ?>
-                    <table class="table">
-                        <tr>
-                        <?php
-                            if (!empty($columns)) {
-                                foreach ($columns as $column) {
-                                    echo '<th>'.$column.'</th>';
+                    <table class="wp-list-table widefat plugins">
+                        <thead>
+                            <tr>
+                            <?php
+                                if (!empty($columns)) {
+                                    unset($columns['g-recaptcha-response']);
+                                    foreach ($columns as $column) {
+                                        echo '<th>'.$column.'</th>';
+                                    }
+                                } else {
+                                    $columns = json_decode($columns_results->data, true);
+                                    unset($columns['g-recaptcha-response']);
+                                    foreach ($columns as $key => $value) {
+                                        echo '<th>'.ucfirst(str_replace('_', '', $key)).'</th>';
+                                    }
                                 }
-                            } else {
-                                $columns = json_decode($columns_results->data);
-                                foreach ($columns as $key => $value) {
-                                    echo '<th>'.ucfirst(str_replace('_', '', $key)).'</th>';
-                                }
-                            }
-                        ?>
-                        </tr>
+                            ?>
+                            </tr>
+                        </thead>
+                        <tbody id="the-list">
                         <?php
                             foreach ($results as $result) {
-                                $row = json_decode($result->data);
+                                $row = json_decode($result->data, true);
+                                unset($row['g-recaptcha-response']);
                                 echo '<tr>';
                                 foreach ($row as $cell) {
                                     echo '<td>'.$cell.'</th>';
                                 }
                                 echo '</tr>';
                             }
-                            echo '<br><br>';
                         ?>
+                        </tbody>
                     </table>
 
             <?php } ?>
