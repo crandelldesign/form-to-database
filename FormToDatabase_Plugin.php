@@ -225,18 +225,25 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                     $results = $wpdb->get_results(
                         $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s ORDER BY created_at ASC",$form_slug)
                     );
-                    $columns = $wpdb->get_row(
-                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s ORDER BY created_at DESC",$form_slug)
+                    $columns_results = $wpdb->get_row(
+                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s AND form_columns IS NOT NULL AND TRIM(form_columns) <> '' ORDER BY created_at DESC",$form_slug)
                     );
 
-                    $columns = json_decode($columns->form_columns);
+                    $columns = json_decode($columns_results->form_columns);
                     $column_count = count($columns);
                     ?>
                     <table class="table">
                         <tr>
                         <?php
-                            foreach ($columns as $column) {
-                                echo '<th>'.$column.'</th>';
+                            if (!empty($columns)) {
+                                foreach ($columns as $column) {
+                                    echo '<th>'.$column.'</th>';
+                                }
+                            } else {
+                                $columns = json_decode($columns_results->data);
+                                foreach ($columns as $key => $value) {
+                                    echo '<th>'.ucfirst(str_replace('_', '', $key)).'</th>';
+                                }
                             }
                         ?>
                         </tr>
