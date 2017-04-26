@@ -199,7 +199,7 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
             'manage_options',
             'form-to-database',
             array($this, 'ftd_render_admin_page'),
-            plugins_url('/img/icon.png',__DIR__)
+            plugins_url('/form-to-database/img/ftd-icon.png',__DIR__)
             );
       }
 
@@ -223,10 +223,36 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
                 <?php
                     $form_slug = $_GET['form'];
                     $results = $wpdb->get_results(
-                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s",$form_slug)
+                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s ORDER BY created_at ASC",$form_slug)
                     );
-                    print_r($results);
-                ?>
+                    $columns = $wpdb->get_row(
+                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s ORDER BY created_at DESC",$form_slug)
+                    );
+
+                    $columns = json_decode($columns->form_columns);
+                    $column_count = count($columns);
+                    ?>
+                    <table class="table">
+                        <tr>
+                        <?php
+                            foreach ($columns as $column) {
+                                echo '<th>'.$column.'</th>';
+                            }
+                        ?>
+                        </tr>
+                        <?php
+                            foreach ($results as $result) {
+                                $row = json_decode($result->data);
+                                echo '<tr>';
+                                foreach ($row as $cell) {
+                                    echo '<td>'.$cell.'</th>';
+                                }
+                                echo '</tr>';
+                            }
+                            echo '<br><br>';
+                        ?>
+                    </table>
+
             <?php } ?>
         </div>
     <?php
