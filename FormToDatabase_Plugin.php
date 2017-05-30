@@ -44,6 +44,10 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
         return 'form-to-database.php';
     }
 
+    public function getPluginSlug() {
+        return 'form-to-database';
+    }
+
     /**
      * See: http://plugin.michael-simpson.com/?page_id=101
      * Called by install() to create any database tables if needed.
@@ -136,10 +140,20 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
 
         // Example adding a script & style just for the options administration page
         // http://plugin.michael-simpson.com/?page_id=47
-        //        if (strpos($_SERVER['REQUEST_URI'], $this->getSettingsSlug()) !== false) {
-        //            wp_enqueue_script('my-script', plugins_url('/js/my-script.js', __FILE__));
-        //            wp_enqueue_style('my-style', plugins_url('/css/my-style.css', __FILE__));
-        //        }
+        function ftd_admin_enqueue_style() {
+            if (strpos($_SERVER['REQUEST_URI'], 'form-to-database') !== false) {
+                wp_enqueue_style('ftd-datatables-css', 'https://cdn.datatables.net/v/dt/jszip-3.1.3/pdfmake-0.1.27/dt-1.10.15/b-1.3.1/b-colvis-1.3.1/b-flash-1.3.1/b-html5-1.3.1/b-print-1.3.1/r-2.1.1/datatables.min.css');
+                wp_enqueue_style('ftd-admin-css', plugins_url('/admin/css/admin.css', __FILE__));
+            }
+        }
+        function ftd_admin_enqueue_script() {
+            if (strpos($_SERVER['REQUEST_URI'], 'form-to-database') !== false) {
+                wp_enqueue_script('ftd-datatables-js', 'https://cdn.datatables.net/v/dt/jszip-3.1.3/pdfmake-0.1.27/dt-1.10.15/b-1.3.1/b-colvis-1.3.1/b-flash-1.3.1/b-html5-1.3.1/b-print-1.3.1/r-2.1.1/datatables.min.js');
+                wp_enqueue_script('ftd-admin-js', plugins_url('/admin/js/admin.js', __FILE__));
+            }
+        }
+        add_action( 'admin_enqueue_scripts', 'ftd_admin_enqueue_style' );
+        add_action( 'admin_enqueue_scripts', 'ftd_admin_enqueue_script' );
 
 
         // Add Actions & Filters
@@ -204,71 +218,7 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
       }
 
     public function ftd_render_admin_page() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'form_to_database';
-        $form_names = $wpdb->get_results(
-            "SELECT DISTINCT form_name, form_slug FROM $table_name"
-        );
-    ?>
-        <div class="wrap">
-            <h1>Form to Database</h1>
-            <ul>
-                <li><?php
-                    foreach ($form_names as $form_name) {
-                        echo '<li><a href="'.admin_url('admin.php?page=form-to-database&form='.$form_name->form_slug).'">'.$form_name->form_name.'</a></li>';
-                    }
-                ?></li>
-            </ul>
-            <?php if(isset($_GET['form']) && !empty($_GET['form'])) { ?>
-                <?php
-                    $form_slug = $_GET['form'];
-                    $results = $wpdb->get_results(
-                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s ORDER BY created_at ASC",$form_slug)
-                    );
-                    $columns_results = $wpdb->get_row(
-                        $wpdb->prepare("SELECT * FROM $table_name WHERE form_slug=%s AND form_columns IS NOT NULL AND TRIM(form_columns) <> '' ORDER BY created_at DESC",$form_slug)
-                    );
-
-                    $columns = json_decode($columns_results->form_columns, true);
-                    $column_count = count($columns);
-                    ?>
-                    <table class="wp-list-table widefat plugins">
-                        <thead>
-                            <tr>
-                            <?php
-                                if (!empty($columns)) {
-                                    unset($columns['g-recaptcha-response']);
-                                    foreach ($columns as $column) {
-                                        echo '<th>'.$column.'</th>';
-                                    }
-                                } else {
-                                    $columns = json_decode($columns_results->data, true);
-                                    unset($columns['g-recaptcha-response']);
-                                    foreach ($columns as $key => $value) {
-                                        echo '<th>'.ucfirst(str_replace('_', '', $key)).'</th>';
-                                    }
-                                }
-                            ?>
-                            </tr>
-                        </thead>
-                        <tbody id="the-list">
-                        <?php
-                            foreach ($results as $result) {
-                                $row = json_decode($result->data, true);
-                                unset($row['g-recaptcha-response']);
-                                echo '<tr>';
-                                foreach ($row as $cell) {
-                                    echo '<td>'.$cell.'</th>';
-                                }
-                                echo '</tr>';
-                            }
-                        ?>
-                        </tbody>
-                    </table>
-
-            <?php } ?>
-        </div>
-    <?php
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . $this->getPluginSlug() . '/admin/form-to-database-admin.php';
     }
 
 
