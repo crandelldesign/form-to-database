@@ -80,7 +80,7 @@ global $wpdb;
                                 //echo '<td>'.$cell.'&nbsp;</th>';
                             }
                             foreach ($columns as $key => $value) {
-                                echo '<td>'.$row[$key].'&nbsp;</th>';
+                                echo '<td>'.(array_key_exists($key, $row)?$row[$key]:'').'&nbsp;</th>';
                             }
                             echo '</tr>';
                         }
