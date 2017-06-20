@@ -45,7 +45,11 @@ global $wpdb;
                 );
 
                 $columns = json_decode($columns_results->form_columns, true);
+                if (empty($columns)) {
+                    $columns = json_decode($columns_results->data, true);
+                }
                 $column_count = count($columns);
+
                 ?>
                 <table class="wp-list-table widefat plugins ftd-data-table">
                     <thead>
@@ -57,7 +61,6 @@ global $wpdb;
                                     echo '<th>'.$column.'</th>';
                                 }
                             } else {
-                                $columns = json_decode($columns_results->data, true);
                                 unset($columns['g-recaptcha-response']);
                                 foreach ($columns as $key => $value) {
                                     echo '<th>'.ucfirst(str_replace('_', '', $key)).'</th>';
@@ -68,12 +71,16 @@ global $wpdb;
                     </thead>
                     <tbody id="the-list">
                     <?php
+                        // Loop through form columns and if no match, make cell blank (nbsp)
                         foreach ($results as $result) {
                             $row = json_decode($result->data, true);
                             unset($row['g-recaptcha-response']);
                             echo '<tr>';
                             foreach ($row as $cell) {
-                                echo '<td>'.$cell.'</th>';
+                                //echo '<td>'.$cell.'&nbsp;</th>';
+                            }
+                            foreach ($columns as $key => $value) {
+                                echo '<td>'.$row[$key].'&nbsp;</th>';
                             }
                             echo '</tr>';
                         }
