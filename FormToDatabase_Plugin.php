@@ -173,8 +173,15 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
             try
             {
                 $table_name = $wpdb->prefix . 'form_to_database';
+                // Find proper name
+                $name = '';
+                if (array_key_exists('contact_name',$form_data)) {
+                    $name = $form_data['contact_name'];
+                } elseif (array_key_exists('lname',$form_data)) {
+                    $name = $form_data['fname'].' '.$form_data['lname'];
+                }
                 $wpdb->insert( $table_name, array(
-                    'name' => (array_key_exists('contact_name',$form_data))?$form_data['contact_name']:'',
+                    'name' => $name,
                     'email' => (array_key_exists('email',$form_data))?$form_data['email']:'',
                     'form_name' => $form_name,
                     'form_slug' => sanitize_title_with_dashes($form_name, null, 'save'),
@@ -208,8 +215,8 @@ class FormToDatabase_Plugin extends FormToDatabase_LifeCycle {
 
     public function ftd_admin_menu() {
        $this->my_plugin_screen_name = add_menu_page(
-            'Form to Database',
-            'Form to Database',
+            'Form Entries',
+            'Form Entries',
             'manage_options',
             'form-to-database',
             array($this, 'ftd_render_admin_page'),

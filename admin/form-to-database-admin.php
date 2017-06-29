@@ -7,7 +7,8 @@ global $wpdb;
     );
     ?>
     <div class="wrap">
-        <h1>Form to Database</h1>
+        <h1>Form Entires</h1>
+        <p><small>Entries from Form to Database</small></p>
         <table class="wp-list-table widefat plugins">
             <thead>
                 <tr>
@@ -35,6 +36,9 @@ global $wpdb;
             </tbody>
         </table>
         <?php if(isset($_GET['form']) && !empty($_GET['form'])) { ?>
+
+            <hr>
+
             <?php
                 $form_slug = $_GET['form'];
                 $results = $wpdb->get_results(
@@ -51,9 +55,10 @@ global $wpdb;
                 $column_count = count($columns);
 
                 ?>
-                <table class="wp-list-table widefat plugins ftd-data-table">
+                <table class="wp-list-table widefat plugins ftd-data-table" data-name="<?php echo $columns_results->form_name ?>">
                     <thead>
                         <tr>
+                            <th>Date Submitted</th>
                         <?php
                             if (!empty($columns)) {
                                 unset($columns['g-recaptcha-response']);
@@ -76,6 +81,7 @@ global $wpdb;
                             $row = json_decode($result->data, true);
                             unset($row['g-recaptcha-response']);
                             echo '<tr>';
+                                echo '<td>'.date('n/j/Y \a\t g:i a',strtotime($result->created_at)).'</td>';
                             foreach ($row as $cell) {
                                 //echo '<td>'.$cell.'&nbsp;</th>';
                             }
